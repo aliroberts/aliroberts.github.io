@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html lang="en-us">
-
   {% include head.html %}
 
-  <body>
-
+  <body class="theme-base-0d">
     {% include sidebar.html %}
 
     <!-- Wrap is the content to shift when toggling the sidebar. We wrap the
@@ -19,13 +17,23 @@
         </div>
       </div>
 
-      <div class="container content">
-        {{ content }}
-      </div>
+      <div class="container content">{{ content }}</div>
     </div>
 
     <label for="sidebar-checkbox" class="sidebar-toggle"></label>
 
-    <script src='{{ site.baseurl }}/public/js/script.js'></script>
+    <script src="{{ site.baseurl }}/public/js/script.js"></script>
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [['$','$'], ['\\(','\\)']],
+          processEscapes: true
+        }
+      });
+    </script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+      type="text/javascript"
+    ></script>
   </body>
 </html>

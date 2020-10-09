@@ -1,7 +1,7 @@
 # Setup
 title: Alastair Roberts
 tagline: 'Meh Blog'
-description: 'A reserved <a href="https://jekyllrb.com" target="_blank">Jekyll</a> theme that places the utmost gravity on content with a hidden drawer. Made by <a href="https://twitter.com/mdo" target="_blank">@mdo</a>.'
+description: "I'm Alastair Roberts, a London-based software engineer & musician. Currently interested in reinforcement learning and natural language processing."
 url: https://aliroberts.github.io
 baseurl: ''
 paginate: 5
@@ -10,6 +10,7 @@ permalink: pretty
 # About/contact
 author:
   name: Alastair Roberts
+  email: ali.roberts3@gmail.com
   url: https://twitter.com/ARoberts9
 
 # Gems
