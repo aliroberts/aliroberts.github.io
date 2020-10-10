@@ -79,6 +79,8 @@ array([0.01337562, 0.02386517, 0.04556581, 0.01944452])
 False
 ```
 
+For more details about `gym` environments/installation the [official docs](https://gym.openai.com/docs/) are a quick read.
+
 ### The optimal action-value function $Q^*$
 
 For a given envronment, the goal of RL is to choose a **policy**, that is, a function of the current state that selects the next action, that maximises the **expected return** of the agent that acts according to it.
@@ -89,10 +91,6 @@ For a given envronment, the goal of RL is to choose a **policy**, that is, a fun
 Suppose for a moment that we had access to the true function $Q^* $ for a given environment with a finite set of actions, how would we use it? For a given state $s$ we could enumerate all the possible actions $(a_1, a_2, ..., a_n)$, calculate $Q^* (s, a_i)$ and simply adopt a policy of choosing the action that maximises the expected return for the given state, setting $a = \max _a Q^* (s, a)$. The goal of **Q-learning** is to approximate the function $Q^*$ and adopt such a policy.
 
 Note here that this depends on calculating Q for every action and therefore restricts this method to choosing actions for environments with discrete action spaces.
-
-- The RL problem
-- Q functions
-- How we could use a Q function to select actions if we knew what it was
 
 ## Approximating the $Q^*$ function
 
@@ -115,13 +113,15 @@ Note that the implementation described here will deviate from this in a few mino
 
 Secondly, the authors of the paper perform some preprocessing over a sequence of images to form a fixed-size representation of their environment's states using some function $\phi_t = \phi(s_t)$. We will use the states $s_t$ from the cart-pole environment as-is for now (we can ignore the setting of $s_t = s_t, a_t, x_\{t+1}$ too; these details will be addressed in the next post).
 
-- Lift image from original paper
-- Describe minor modifications to the algorithm for our purposes
-
 ### Implementation
 
-- Generating a FFNN
-- The main training loop
+A complete implementation is given below. We first define a few helper functions for generating our Q network (`ffnn`, which I pinched from the 'Simplest Policy Gradient' implementation in [part three](https://spinningup.openai.com/en/latest/spinningup/rl_intro3.html) of 'Spinning Up'), choosing the optimal action according to our Q network (`best_action`) and computing the loss (`compute_loss`). The rest of the code more-or-less devoted to implementing the `dqn` function that takes care of the complete DQN training process as described above.
+
+The algorithm uses an $\epsilon$-greedy policy which means that it'll randomly sample an action from the action space with probability $\epsilon$ or otherwise choose the best action from the current approximation of $Q^* $ (with probability 1 - $\epsilon$). The value of $\epsilon$ essentially controls the degree to which the agent will explore the environment vs the degree to which it will exploit its current ability to maximise its expected return. When we start training our agent, our $Q$ network is unlikely to provide a reasonable approximation of $Q^* $. In order to discover which actions lead to a higher accumulation of rewards over time we opt for an initial period of data collection via random actions. Hopefully some of these random actions will have resulted in a high return over some of the episodes and so training our network will nudge the weights of our $Q$ network to predict a higher value (expected return) under those circumstances if we follow the high-return actions.
+
+After the initial exploration period, the implementation below begins to linearly decay the value of $\epsilon$ so that more and more of the agent's actions are those which the $Q$ network predicts will maximise our reward. While $Q$ it may still not be a particularly good approximation of $Q^* $, it is hoped that it provides some reasonable estimates under some circumstances and then by mixing in some further random exploration we will gradually nudge the weights to push the average episode return up even more.
+
+Most of the hyperparameters (learning rate, network size, timesteps and batchsize) were taken from the DQN implementation in the [Stable Baselines](https://github.com/hill-a/stable-baselines) repo and seem to work well over a range of random seeds (see below for experimental results).
 
 ```python
 import argparse
@@ -150,7 +150,7 @@ def best_action(q_func, obs, n_acts):
     # Use one-hot encoding for actions and concatenate the observation:
     # obs = [o_1, o_2,..., o_k], n_acts = 2 give us two candidate inputs
     # for the Q function:
-    #
+
     # [1, 0, o_1, o_2,..., o_k], [0, 1, o_1, o_2,..., o_k]
     with torch.no_grad():
         one_hot = torch.eye(n_acts)
@@ -231,6 +231,7 @@ def dqn(
         rews.append(rew)
         xp_replay.append(xp)
 
+        # Make sure we update the current observation for the next iteration!
         obs = obs_next
 
         targets = []
@@ -240,14 +241,15 @@ def dqn(
             # Cartpole is considered solved when the average return is >= 195
             # over 100 consecutive trials
             ep_returns.append(sum(rews))
-
             if len(ep_returns) >= 100 and np.mean(ep_returns[-100:]) >= 195:
                 print(f'SOLVED! timesteps: {i} \t episodes: {len(ep_returns)}')
                 return
 
-            mb = random.sample(xp_replay, min(bs, len(xp_replay)))
+            # Randomly sample a minibatch from our experience replay buffer
+            minibatch = random.sample(xp_replay, min(bs, len(xp_replay)))
+
             # Construct the targets and inputs for our loss function
-            for obs, act, rew, obs_next, done in mb:
+            for obs, act, rew, obs_next, done in minibatch:
                 # Find the best action (predicted by the current q_net)
                 # and construct our input vals
                 best_act = best_action(q_net, obs_next, n_acts)
@@ -311,8 +313,10 @@ if __name__ == '__main__':
         render=args.render,
     )
 
-
 ```
+
+- Generating a FFNN
+- The main training loop
 
 ### Results
 
