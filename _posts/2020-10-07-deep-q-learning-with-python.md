@@ -145,37 +145,28 @@ def ffnn(sizes, activation=nn.Tanh, output_activaton=nn.Identity):
     return nn.Sequential(*layers)
 
 
-def best_action(q_func, obs, n_acts):
-    # Create n inputs for our Q net and choose the best action
-    # Use one-hot encoding for actions and concatenate the observation:
-    # obs = [o_1, o_2,..., o_k], n_acts = 2 give us two candidate inputs
-    # for the Q function:
-
-    # [1, 0, o_1, o_2,..., o_k], [0, 1, o_1, o_2,..., o_k]
+def best_action(q_func, obs):
+    # Return tensors consisting of best actions and the corresponding
+    # q_func values for each observation in the obs tensor
     with torch.no_grad():
-        one_hot = torch.eye(n_acts)
-        expanded_obs = torch.as_tensor([obs],
-                                       dtype=torch.float32).expand(n_acts, -1)
-        q_in = torch.cat((one_hot, expanded_obs), 1)
-        best_act = torch.argmax(q_func(q_in)).item()
-    return best_act
-
-
-def compute_loss(q_func, x, y):
-    return ((y - q_func(x))**2).mean()
+        val, best_act = q_func(obs).max(1)
+    return best_act, val
 
 
 def dqn(
-        timesteps=100000,
+        timesteps=25000,
         bs=32,
-        hidden=[64, 64],
-        replay_buffer_len=100000,
-        lr=1e-3,
-        epsilon_start=1,
-        explore_until=10000,  # Choose a random action for this many timesteps
-        gamma=1,  # Discount factor when computing returns from rewards
+        hidden=[64, 64],  # Hidden layer size in the Q approximator network
+        replay_buffer_len=10000,
+        lr=5e-4,
+        epsilon_start=1,  # Starting value of epsilon
+        epsilon_end=0.02,  # Final value of epsilon after annealing
+        epsilon_decay_duration=2500,  # Anneal the value of epsilon over this many timesteps
+        learning_starts=1000,  # Start training our Q approximation after this many timesteps
+        gamma=0.99,  # Discount factor when computing returns from rewards
+        train_freq=1,
         seed=42,
-        render=False):
+        render_every=0):  # Render every <render_every> episodes
 
     # Instantiate environment
     env = gym.make('CartPole-v0')
@@ -183,18 +174,26 @@ def dqn(
     # Set random seeds
     env.seed(seed)
     torch.manual_seed(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    env.action_space.seed(seed)
 
     # Construct our Q network that we'll use to approximate Q*
     n_acts = env.action_space.n
     obs_size = env.observation_space.shape[0]
-    q_net = ffnn([n_acts + obs_size] + hidden + [1])
+
+    # We're using a network that estimates Q* for each action
+    # (corresponding to each output)
+    q_net = ffnn([obs_size] + hidden + [n_acts])
 
     # Use Adam for our optimizer
     optimiser = torch.optim.Adam(q_net.parameters(), lr=lr)
 
     def epsilon_schedule(t, timesteps):
         # We'll use a linear decay function here
-        return epsilon_start * min((-t / timesteps + 1), 1.0)
+        eps = epsilon_start * (-t / timesteps + 1)
+        eps = max(eps, epsilon_end)
+        return eps
 
     # Initialise the experience replay buffer.
     # When the replay buffer reaches the max length discard oldest items
@@ -204,29 +203,38 @@ def dqn(
     # Create some empty buffers for tracking episode-level details.
     # These will be used for logging and determining when we've finished.
     ep_returns = []
-    ep_lens = []  # The number of timesteps per episode
 
     rews = []  # Track rewards for each timestep and reset at end of episode
-    done = False
+    ep_done = False
 
     obs = env.reset()
 
     loss = None
 
     for i in range(timesteps):
+        should_render = len(
+            ep_returns) % render_every == 0 if render_every else False
+        if should_render:
+            env.render()
+
         # Sample an action randomly with prob (1 - epsilon)
-        eps = epsilon_schedule(i - explore_until, timesteps)
-        act = env.action_space.sample(
-        ) if random.random() < eps else best_action(q_net, obs, n_acts)
+        eps = epsilon_schedule(i, epsilon_decay_duration)
+
+        if random.random() < eps:
+            act = env.action_space.sample()
+        else:
+            act = best_action(q_net,
+                              torch.as_tensor([obs],
+                                              dtype=torch.float32))[0].item()
 
         # Perform the action in the envrionment and record
         # an experience tuple
         obs_next, rew, ep_done, _ = env.step(act)
-        xp = (obs.copy(), act, rew, obs_next.copy(), ep_done)
 
-        # Record a reward of 0 for the terminal state
-        if ep_done:
-            rew = 0
+        # CartPole-v0 returns a reward of 1 for terminal states, most of which will
+        # correspond to bad actions. Manually set to 0 for terminal states.
+        rew = 0 if ep_done else rew
+        xp = (obs.copy(), act, rew, obs_next.copy(), ep_done)
 
         rews.append(rew)
         xp_replay.append(xp)
@@ -234,73 +242,86 @@ def dqn(
         # Make sure we update the current observation for the next iteration!
         obs = obs_next
 
-        targets = []
-        inputs = []
-
         if ep_done or i == timesteps - 1:
+            ret = sum(rews)
+            ep_returns.append(ret)
+
+            # Log episode data for plotting
+            num_episodes = len(ep_returns)
+
             # Cartpole is considered solved when the average return is >= 195
             # over 100 consecutive trials
-            ep_returns.append(sum(rews))
-            if len(ep_returns) >= 100 and np.mean(ep_returns[-100:]) >= 195:
-                print(f'SOLVED! timesteps: {i} \t episodes: {len(ep_returns)}')
-                return
-
-            # Randomly sample a minibatch from our experience replay buffer
-            minibatch = random.sample(xp_replay, min(bs, len(xp_replay)))
-
-            # Construct the targets and inputs for our loss function
-            for obs, act, rew, obs_next, done in minibatch:
-                # Find the best action (predicted by the current q_net)
-                # and construct our input vals
-                best_act = best_action(q_net, obs_next, n_acts)
-
-                best_act_one_hot = np.zeros(n_acts)
-                best_act_one_hot[best_act] = 1
-
-                q_input = np.concatenate((best_act_one_hot, obs_next))
-
-                with torch.no_grad():
-                    y_i = rew if done else rew + gamma * q_net(
-                        torch.as_tensor(q_input, dtype=torch.float32)).item()
-                targets.append([y_i])
-
-                # One-hot encoding of action
-                act_one_hot = np.zeros(n_acts)
-                act_one_hot[act] = 1
-                inputs.append(np.concatenate((act_one_hot, obs)))
-
-            optimiser.zero_grad()
-            loss = compute_loss(q_net,
-                                torch.as_tensor(inputs, dtype=torch.float32),
-                                torch.as_tensor(targets, dtype=torch.float32))
-            loss.backward()
-            optimiser.step()
+            if num_episodes >= 100 and np.mean(ep_returns[-100:]) >= 195:
+                print(f'SOLVED! timesteps: {i} \t episodes: {num_episodes}')
+                return ep_returns
 
             ep_returns.append(sum(rews))
-            ep_lens.append(len(rews))
-
             rews = []
 
             obs = env.reset()
 
-        if i > 0 and i % 500 == 0:
+        if i >= learning_starts and i % train_freq == 0:
+            # Sample from our experience replay buffer and update the parameters
+            # of the Q network
+            minibatch = random.sample(xp_replay, min(bs, len(xp_replay)))
+
+            mb_obs = []
+            mb_acts = []
+            mb_rews = []
+            mb_obs_next = []
+            mb_done = []
+
+            # Construct the targets and inputs for our loss function
+            for obs_, act, rew, obs_next_, done in minibatch:
+                mb_obs.append(obs_)
+                mb_acts.append(act)
+                mb_rews.append(rew)
+                mb_obs_next.append(obs_next_)
+                mb_done.append(0 if done else 1)
+
+            mb_obs = torch.as_tensor(mb_obs, dtype=torch.float32)
+            mb_obs_next = torch.as_tensor(mb_obs_next, dtype=torch.float32)
+            mb_rews = torch.as_tensor(mb_rews, dtype=torch.float32)
+            mb_done = torch.as_tensor(mb_done, dtype=torch.float32)
+            mb_acts = torch.as_tensor(mb_acts)
+
+            optimiser.zero_grad()
+
+            # Create the target vals y_i for our loss function
+            with torch.no_grad():
+                y = mb_rews + gamma * mb_done * best_action(
+                    q_net, mb_obs_next)[1]
+
+            # Perform a gradient descent step on (y_i - Q(s_i, a_i)
+            x = q_net(mb_obs)[torch.arange(len(mb_acts)), mb_acts]
+            loss = ((y - x)**2).mean()
+
+            # Compute gradients and update the parameters
+            loss.backward()
+            optimiser.step()
+
+        num_episodes = len(ep_returns)
+        if num_episodes % 100 == 0 and ep_done:
             print(
-                f'timestep: {i} \t epsilon: {eps}' \
+                f'episodes: {num_episodes} \t timestep: {i} \t epsilon: {eps}' \
                     f'\t last loss: {loss}' \
                         f'\t return (last 100): {np.mean(ep_returns[-100:])}'
             )
+    return ep_returns
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--timesteps', type=int, default=100000)
+    parser.add_argument('--timesteps', type=int, default=25000)
     parser.add_argument('--bs', type=int, default=32)
-    parser.add_argument('--replay-buffer-len', type=int, default=100000)
-    parser.add_argument('--lr', type=float, default=1e-3)
-    parser.add_argument('--epsilon_start', type=int, default=1)
-    parser.add_argument('--explore_until', type=int, default=10000)
+    parser.add_argument('--replay-buffer-len', type=int, default=10000)
+    parser.add_argument('--lr', type=float, default=5e-4)
+    parser.add_argument('--epsilon-start', type=float, default=1.0)
+    parser.add_argument('--epsilon-end', type=float, default=0.02)
+    parser.add_argument('--epsilon-decay-duration', type=int, default=2500)
+    parser.add_argument('--learning-starts', type=int, default=1000)
     parser.add_argument('--seed', type=int, default=42)
-    parser.add_argument('--render', type=bool, default=True)
+    parser.add_argument('--render-every', type=int, default=0)
     args = parser.parse_args()
 
     dqn(
@@ -309,18 +330,20 @@ if __name__ == '__main__':
         replay_buffer_len=args.replay_buffer_len,
         lr=args.lr,
         epsilon_start=args.epsilon_start,
-        explore_until=args.explore_until,
-        render=args.render,
+        epsilon_end=args.epsilon_end,
+        epsilon_decay_duration=args.epsilon_decay_duration,
+        learning_starts=args.learning_starts,
+        seed=args.seed,
+        render_every=args.render_every,
     )
-
 ```
 
-- Generating a FFNN
-- The main training loop
+**TODO** Add rendering code & create gifs (might be a good candidate for a PR to gym?)
 
 ### Results
 
-- A note about choosing hyperparameters (these were borrowed from the stable-baselines repo)
+The results of running the `dqn` function 10 times with a different random seed each time are shown below. It's interesting to note the degree of variation in performance between runs of the same algorithm with differing random seeds. In all cases the policy improves over time, however there are those in which performance improves at a much higher rate than others. Even though the environment is a simple one, this is possibly due to the early exploration failures resulting in suboptimal examples to learn from.
+
 - pyplot graphs
 - Multiple random seeds
 - Discussion about the warm-up period that's usually associated with Q-learning
