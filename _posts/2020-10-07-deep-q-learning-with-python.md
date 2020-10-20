@@ -83,25 +83,41 @@ For more details about `gym` environments/installation the [official docs](https
 
 ### The optimal action-value function $Q^*$
 
-For a given envronment, the goal of RL is to choose a **policy**, that is, a function of the current state that selects the next action, that maximises the **expected return** of the agent that acts according to it.
+For a given envronment, the goal of RL is to choose a **policy**, that is, a function of the current state that selects the next action, that maximises the **expected return** of the agent that acts according to it. The policy could be represented by a probability distribution that is conditioned on a state $s_t$ at time $t$ that we then sample from. For DQN, and Q-learning more generally, policies are deterministic. That is, the action $a_t$ can be expressed as a function of the state $s_t$ at timestep $t$
 
-- Introduce formally what a return function is and what it is in the context of cart-pole
-- Discuss the action-value function mathematically
+$$ a_t = \mu(s_t) $$
 
-Suppose for a moment that we had access to the true function $Q^* $ for a given environment with a finite set of actions, how would we use it? For a given state $s$ we could enumerate all the possible actions $(a_1, a_2, ..., a_n)$, calculate $Q^* (s, a_i)$ and simply adopt a policy of choosing the action that maximises the expected return for the given state, setting $a = \max _a Q^* (s, a)$. The goal of **Q-learning** is to approximate the function $Q^*$ and adopt such a policy.
+Considering an episode of length $T$ timesteps, at each timestep $t$ we can define the **future discounted return**, which is a weighted sum of returns from the current timestep. If $\gamma$ is less than 1 then the contribution of future returns is discounted (one in the hand is worth $\gamma^{t'-t}$ in the bush).
+
+$$ R_t = \sum_{t'=t}^T{\gamma^{t'-t}r_t}, \text{where } \gamma \in [0, 1] $$
+
+For a given state $s$ we can then define the **optimal action-value function**.
+
+$$Q^*(s, a) = \max_\mu \mathrm{E}[R_t | s_t = s, a_t = a, \mu ]$$
+
+This gives us the expected future (discounted) return if perform action $a$ when in a given state $s$ and then act according to the optimal policy from then on util the end of the episode.
+
+Suppose for a moment that we had access to the true function $Q^* $ for a given environment with a finite set of actions, how would we use it? For a given state $s$ we could enumerate all the possible actions $(a_1, a_2, ..., a_n)$, calculate $Q^* (s, a_i)$ and simply adopt a policy of choosing the action that maximises the expected return for the given state, setting $a = \max _a Q^* (s, a)$. The goal of Q-learning is to approximate the function $Q^*$ and adopt such a policy.
 
 Note here that this depends on calculating Q for every action and therefore restricts this method to choosing actions for environments with discrete action spaces.
 
 ## Approximating the $Q^*$ function
 
-- Use a FFNN to approximate Q
-- What to learn
+In order to approximate $Q^* $ we'll be using a feedfoward neural network $$ Q \approx Q^* $$ with parameters $\theta$. The structure of this network and implementation details are discussed in detail below, but for now we'll treat it as a single-valued function of two variables, $s$ and $a$, with parameters $\theta$.
+
+In order to train the network we need (i) some targets and (ii) some kind of loss function. Rather that minimising a single loss function, however, we are going to minimise a sequence of loss functions where $i$ refers to the $i$th training step and $t$ is some timestep. Assume for a moment that we have access to a set of 'experiences' $\mathcal{D} = \lbrace e_1, e_2, ..., e_n\rbrace$, where each element $e_i$ is a tuple of the form $e_i = (s_t, a_t, r_t, s_{t+1})$. Here, $s_t$ is a state at timestep $t$, $a_t$ is the action that was performed, $r_t$ is the observed reward and $s_{t+1}$ is the next state return by the environment. The loss functions then take the form
+
+$$ L_i(\theta_i) = \mathrm{E}[y_i - Q(s_t, a_t; \theta_i)] $$
+
+Where
+
+$$y_i = E[r_t + \gamma \max_{a'} Q(s_{t+1}, a'; \theta^-)]$$
+
+Here $\theta^-$ refers to the fixed parameters of $Q$ at training step $i$. This can be thought of as a separate network whose parameters are not updated as part of the optimisation step. It turns out that it is possible to make the DQN procedure more stable by keeping theses 'target network' parameters fixed over a greater number of timesteps, which we'll explore in the next post. At each training step the expectation above is approximated using minibatches and the parameters $\theta_i$ are updated via stochastic gradient descent.
+
+Now here we're using some observation $s_t$, a reward $r_t$, an action $a_t$ and the following state $s_{t+1}$, but where are we drawing these from? A key idea that was introduced in the [original DQN paper from DeepMind](https://arxiv.org/pdf/1312.5602.pdf) is that of an **experience replay buffer**. The experiences will be accumulated as we train and stored in a fixed-length buffer that we will then randomly sample from to generate the minibatches. More details are provided below, but essentially there will be a period of exploration where random actions are chosen and then a period where we become increasingly dependent on our learned $Q$ network to pick actions. After a number of timesteps most of the actions in the buffer will be generated by performing actions that maximise the $Q$ network.
 
 > **NOTE**: It is worth mentioning that DQN can be adapted for environments with continuous action spaces, where it goes by the name [Deep Deterministic Policy Gradient (DDPG)](https://spinningup.openai.com/en/latest/algorithms/ddpg.html). The principal modification here is the introduction of a function that chooses an action that maximises Q which is learned as part of the training process.
-
-- Mention briefly that the algorithm can be modified to handle continuous action spaces (DDQN: https://spinningup.openai.com/en/latest/algorithms/ddpg.html)
-
-- Focus will be on environments with discrete action spaces since we have to search for the best action
 
 ### The complete algorithm
 
@@ -109,7 +125,7 @@ Our implementation will closely follow the DQN algorithm as described in Vlad Mn
 
 ![Playing Atari with Deep Reinforcement Learning, Vlad Mnih, Koray Kavukcuoglu, et al. NIPS 2013](/assets/dqn-1/mnih-algo-2013.png)
 
-Note that the implementation described here will deviate from this in a few minor details. Firstly, rather than iterating over a fixed number of episodes and timesteps for each episode, we'll simply iterate over a fixed number of timesteps. We'll update the weights of our $Q$ network after every timestep, after an initial exploration period specified by `learning_starts`. The `dqn` function will exit when the environment is 'solved' (when we have reached an average return of > 195 over 100 consecutive episodes) or we reach the specified number of timesteps.
+Note that the implementation described here will deviate from this in a few minor details. Firstly, rather than iterating over a fixed number of episodes and timesteps for each episode, we'll simply iterate over a fixed number of timesteps. We'll update the weights of our $Q$ network after every timestep, after an initial exploration period specified by `learning_starts`. The `dqn` function will exit when the environment when we have reached an average return of > 195 over 100 consecutive episodes or we reach the specified number of timesteps.
 
 Secondly, the authors of the paper perform some preprocessing over a sequence of images to form a fixed-size representation of their environment's states using some function $\phi_t = \phi(s_t)$. We will use the states $s_t$ from the cart-pole environment as-is for now (we can ignore the setting of $s_t = s_t, a_t, x_\{t+1}$ too; these details will be addressed in the next post).
 
@@ -359,11 +375,11 @@ def ffnn(sizes, activation=nn.Tanh, output_activaton=nn.Identity):
 
 The neural network that we use in the DQN implementation is instantiated by `q_net = ffnn([obs_size] + hidden + [n_acts])`. Where `obs_size` is 4 (the size of the observation vector returned from the environment when `env.step` is called), `hidden` is the list `[64, 64]`, and `n_acts` is 2 (corresponding to the left `0` and right `1` actions that the environment uses). This defines a function
 
-$$ Q_\theta : \mathbb{R}^4 \to \mathbb{R}^2 $$
+$$ Q : \mathbb{R}^4 \to \mathbb{R}^2 $$
 
-where $\theta$ is a vector whose components are our network's parameters. We can decompose this function into it's constituent parts (functions) that make it into a neural network. The following shows the chain of transformations that our input vector is going to go through as it's minced into its final state.
+We can decompose this function into it's constituent parts (functions) that make it into a neural network. The following shows the chain of transformations that our input vector is going to go through as it's minced into its final state.
 
-$$ Q_\theta : \mathbb{R}^4 \to \mathbb{R}^{64} \to \mathbb{R}^{64} \to \mathbb{R}^2 $$
+$$ Q : \mathbb{R}^4 \to \mathbb{R}^{64} \to \mathbb{R}^{64} \to \mathbb{R}^2 $$
 
 More explictly in terms of the operations being performed, if we have three linear functions $L_1 : \mathbb{R}^{4} \to \mathbb{R}^{64}$, $L_2 : \mathbb{R}^{64} \to \mathbb{R}^{64}$ and $L_3 : \mathbb{R}^{64} \to \mathbb{R}^{2}$. We can break the computation down to the following steps for a given input $x$, where we have
 
@@ -395,7 +411,7 @@ The first matrix (2-D tensor) takes an input of size 4 and returns an output of 
 
 ### Why does our Q-network have two outputs?
 
-In the code above we've used a neural network $Q_{\theta}(s) \mapsto (q_1, q_2)$ where $s$ is the current state of the environment and $(q_1, q_2)$ are the predicted action-values for the actions $0$ and $1$ respectively. For a more literal implementation of the above algorithm we could have instead made $Q_{\theta}$ a function of both the action and the state mapping to the estimated value for the pair, giving us an approximator of $Q$ in the familar form $Q_{\theta}(s, a) \mapsto q$.
+In the code above we've used a neural network $Q(s; \theta) \mapsto (q_1, q_2)$ where $s$ is the current state of the environment and $(q_1, q_2)$ are the predicted action-values for the actions $0$ and $1$ respectively. For a more literal implementation of the above algorithm we could have instead made $Q$ a function of both the action and the state mapping to the estimated value for the pair, giving us an approximator of $Q^* $ in the familar form $Q(s, a; \theta) \mapsto q$.
 
 The primary advantage, as far as I'm aware, of the given implementation is that in enables us to write a slightly more efficient (and cleaner-looking) function for choosing the best action for a given state. In order to find the best action we can simply retrieve the index of the highest output using a single forward pass. The alternative would require us to perform two passes to work out which action is best. In addition to this we would have to work a little bit more to construct the inputs by concatenating a one-hot representation of the action with the state before passing it in to the function.
 
@@ -702,13 +718,18 @@ tensor([0, 0, 0, 0, 0, 1, ... # len 32
 tensor([-0.0236, -0.1013, -0.0256, -0.0280, -0.0623, -0.1797, ...
 ```
 
-**TODO**
+Now that we have computed the loss, we can use backprop to calculate the gradients and update the parameters using the optimiser.
+
+```python
+loss.backward()
+optimiser.step()
+```
 
 ### Results
 
 **TODO** Create gifs demonstrating progress (might be a good candidate for a PR to gym?)
 
-The results of running the `dqn` function over 10 random seeds are shown below.
+The results of running the `dqn` function over 10 random seeds are shown below. All runs demonstrate a period of sustained policy improvement, however there are several iterations that level out or experience a decline in performance as the number of episodes increases.
 
 ![DQN (10 random seeds)](/assets/dqn-1/basic-dqn-10-seed.png)
 
