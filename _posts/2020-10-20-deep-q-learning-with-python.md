@@ -20,7 +20,7 @@ The environment is considered 'solved' when the average return (in this case the
 
 ### States
 
-Let's take a moment to frame this problem more formally. Let's first consider the **state space** $S$ (I will use the terms 'states' and 'observations' interchangably). The state space $S$ is a set whose elements describe all possible configurations of the environment. In part two we'll modify our approach to use the rendered images of the environment to derive our observations. For now, however, we'll focus on simply using the observations provided out-of-the-box by the `gym` library which essentially take the form of a 4-dimensional NumPy array of continuous-valued real numbers which have been wrapped in a custom `Box` class that gives us a few helper methods:
+Let's take a moment to frame this problem more formally. Let's first consider the **state space** $S$ (I will use the terms 'states' and 'observations' interchangably). The state space $S$ is a set whose elements describe all possible configurations of the environment. In part three we'll modify our approach to use the rendered images of an environment to derive our observations. For now, however, we'll focus on simply using the observations provided out-of-the-box by the `gym` library which essentially take the form of a 4-dimensional NumPy array of continuous-valued real numbers which have been wrapped in a custom `Box` class that gives us a few helper methods:
 
 ```python
 >>> import gym
