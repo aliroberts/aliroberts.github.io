@@ -336,7 +336,7 @@ def dqn(
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--timesteps', type=int, default=25000)
+    parser.add_argument('--timesteps', type=int, default=50000)
     parser.add_argument('--bs', type=int, default=32)
     parser.add_argument('--replay-buffer-len', type=int, default=10000)
     parser.add_argument('--lr', type=float, default=5e-4)
