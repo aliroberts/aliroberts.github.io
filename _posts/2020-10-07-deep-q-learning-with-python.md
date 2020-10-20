@@ -3,27 +3,20 @@ layout: post
 title: Deep Q-Learning with PyTorch - Part 1
 ---
 
-This is the first part of a series of three posts exploring deep Q-learning (DQN) which is a fundamental reinforcement learning algorithm. This first part will walk through a basic Python implementation of DQN to solve the cart-pole problem, using the PyTorch library. This initial implementation is based on the algorithm as described in Deepmind's paper ["Playing Atari with Deep Reinforcement Learning"](https://arxiv.org/pdf/1312.5602.pdf). Over the next two parts we'll ramp up the level of sophistication and end with a DQN implementation for the Atari game [Breakout](<https://en.wikipedia.org/wiki/Breakout_(video_game)>), that closely follows the details of DeepMind's paper ["Human-level control through deep reinforcement learning"](http://www.nature.com/nature/journal/v518/n7540/full/nature14236.html) which appeared in [Nature](http://www.nature.com/) in 2015.
+This is the first part of a series of three posts exploring deep Q-learning (DQN). DQN is a reinforcement learning algorithm that was introduced by DeepMind in their 2013 paper ["Playing Atari with Deep Reinforcement Learning"](https://arxiv.org/pdf/1312.5602.pdf). This first part will walk through a basic Python implementation of DQN to solve the cart-pole problem, using the PyTorch library. This initial implementation is based on the algorithm as described in the original paper. Over the next two parts we'll ramp up the level of sophistication and end with a DQN implementation for the Atari game [Breakout](<https://en.wikipedia.org/wiki/Breakout_(video_game)>), that closely follows the details of DeepMind's paper ["Human-level control through deep reinforcement learning"](http://www.nature.com/nature/journal/v518/n7540/full/nature14236.html) which appeared in [Nature](http://www.nature.com/) in 2015.
 
-This post is intended to be sort of a compliment to OpenAI's ["Spinning Up"](https://spinningup.openai.com/en/latest/user/introduction.html) which is an excellent resource if you've got some familiarity with matrix operations, calculus and programming and want to get started with deep reinforcement learning. If a lot of the terminology here is new to you, I highly recommend reading through [part one](https://spinningup.openai.com/en/latest/spinningup/rl_intro.html), [part two](https://spinningup.openai.com/en/latest/spinningup/rl_intro2.html) and [part three](https://spinningup.openai.com/en/latest/spinningup/rl_intro3.html) of their introduction to RL.
+This post is intended to compliment OpenAI's ["Spinning Up"](https://spinningup.openai.com/en/latest/user/introduction.html) which is an excellent resource if you have some familiarity with matrix operations, calculus and programming and want to get started with deep reinforcement learning. If a lot of the terminology here is new to you, I highly recommend reading through [part one](https://spinningup.openai.com/en/latest/spinningup/rl_intro.html), [part two](https://spinningup.openai.com/en/latest/spinningup/rl_intro2.html) and [part three](https://spinningup.openai.com/en/latest/spinningup/rl_intro3.html) of their introduction to RL.
 
 ## The problem
 
 The environment that we'll tackle in this first post is known as cart-pole. In particular, we'll be using OpenAI's implementation (`CartPole-v0`) from their Python library `gym`:
 
-**TODO** Add GIF of CartPole
-
 > _A pole is attached by an un-actuated joint to a cart, which moves along a frictionless track. The system is controlled by applying a force of +1 or -1 to the cart. The pendulum starts upright, and the goal is to prevent it from falling over. A reward of +1 is provided for every timestep that the pole remains upright. The episode ends when the pole is more than 15 degrees from vertical, or the cart moves more than 2.4 units from the center._  
 >  _[https://gym.openai.com/envs/CartPole-v0/](https://gym.openai.com/envs/CartPole-v0/)_
 
+![The cart-pole environment](/assets/dqn-1/trained-agent-2.gif)
+
 The environment is considered 'solved' when the average return (in this case the sum of rewards from each timestep) over 100 consecutive trials (episodes) for an agent is greater than or equal to 195.
-
-<!-- Let's take a moment to frame this problem more formally. Our cart-pole environment can be described by a Markov Decision Process (MDP) which is defined as a 5-tuple $\langle S, A, R, P, \psi_0 \rangle$ where
-
-- $S$ is the set of possible states
-- $A$ is the set of possible actions
-- $R : S \times A \times S \to \mathbb{R}$ is the reward function with $r_t = R(s_t, a_t, s_{t+1})$
-- $P: S \times A \to \mathcal{P}(S)$ is the transition probability function where $P(s'|s, a)$ gives the probability of transitioning to  -->
 
 ### States
 
@@ -87,7 +80,7 @@ For a given envronment, the goal of RL is to choose a **policy**, that is, a fun
 
 $$ a_t = \mu(s_t) $$
 
-Considering an episode of length $T$ timesteps, at each timestep $t$ we can define the **future discounted return**, which is a weighted sum of returns from the current timestep. If $\gamma$ is less than 1 then the contribution of future returns is discounted (one in the hand is worth $\gamma^{t'-t}$ in the bush).
+Considering an episode of length $T$ timesteps, at each timestep $t$ we can define the **future discounted return**, which is a weighted sum of returns from the current timestep. If $\gamma$ is less than 1 then the contribution of future returns is discounted (a reward now is worth more than a reward later).
 
 $$ R_t = \sum_{t'=t}^T{\gamma^{t'-t}r_t}, \text{where } \gamma \in [0, 1] $$
 
@@ -95,7 +88,7 @@ For a given state $s$ we can then define the **optimal action-value function**.
 
 $$Q^*(s, a) = \max_\mu \mathrm{E}[R_t | s_t = s, a_t = a, \mu ]$$
 
-This gives us the expected future (discounted) return if perform action $a$ when in a given state $s$ and then act according to the optimal policy from then on util the end of the episode.
+This gives us the expected future (discounted) return if we perform action $a$ when in a given state $s$ and then act according to the optimal policy from then on util the end of the episode.
 
 Suppose for a moment that we had access to the true function $Q^* $ for a given environment with a finite set of actions, how would we use it? For a given state $s$ we could enumerate all the possible actions $(a_1, a_2, ..., a_n)$, calculate $Q^* (s, a_i)$ and simply adopt a policy of choosing the action that maximises the expected return for the given state, setting $a = \max _a Q^* (s, a)$. The goal of Q-learning is to approximate the function $Q^*$ and adopt such a policy.
 
@@ -103,19 +96,29 @@ Note here that this depends on calculating Q for every action and therefore rest
 
 ## Approximating the $Q^*$ function
 
-In order to approximate $Q^* $ we'll be using a feedfoward neural network $$ Q \approx Q^* $$ with parameters $\theta$. The structure of this network and implementation details are discussed in detail below, but for now we'll treat it as a single-valued function of two variables, $s$ and $a$, with parameters $\theta$.
+In order to approximate $Q^* $ we'll be using a feedfoward neural network $$ Q \approx Q^* $$. The structure of this network and implementation details are discussed in detail below, but for now we'll treat it as a single-valued function of two variables, $s$ and $a$, with parameters $\theta$.
 
 In order to train the network we need (i) some targets and (ii) some kind of loss function. Rather that minimising a single loss function, however, we are going to minimise a sequence of loss functions where $i$ refers to the $i$th training step and $t$ is some timestep. Assume for a moment that we have access to a set of 'experiences' $\mathcal{D} = \lbrace e_1, e_2, ..., e_n\rbrace$, where each element $e_i$ is a tuple of the form $e_i = (s_t, a_t, r_t, s_{t+1})$. Here, $s_t$ is a state at timestep $t$, $a_t$ is the action that was performed, $r_t$ is the observed reward and $s_{t+1}$ is the next state return by the environment. The loss functions then take the form
 
-$$ L_i(\theta_i) = \mathrm{E}[y_i - Q(s_t, a_t; \theta_i)] $$
+$$ L_i(\theta_i) = \mathrm{E}_{s_t, a_t \sim \mathcal{D}}[(y_i - Q(s_t, a_t; \theta_i))^2] $$
 
 Where
 
-$$y_i = E[r_t + \gamma \max_{a'} Q(s_{t+1}, a'; \theta^-)]$$
+$$y_i = r_t + \gamma \max_{a'} Q(s_{t+1}, a'; \theta^-)$$
 
 Here $\theta^-$ refers to the fixed parameters of $Q$ at training step $i$. This can be thought of as a separate network whose parameters are not updated as part of the optimisation step. It turns out that it is possible to make the DQN procedure more stable by keeping theses 'target network' parameters fixed over a greater number of timesteps, which we'll explore in the next post. At each training step the expectation above is approximated using minibatches and the parameters $\theta_i$ are updated via stochastic gradient descent.
 
-Now here we're using some observation $s_t$, a reward $r_t$, an action $a_t$ and the following state $s_{t+1}$, but where are we drawing these from? A key idea that was introduced in the [original DQN paper from DeepMind](https://arxiv.org/pdf/1312.5602.pdf) is that of an **experience replay buffer**. The experiences will be accumulated as we train and stored in a fixed-length buffer that we will then randomly sample from to generate the minibatches. More details are provided below, but essentially there will be a period of exploration where random actions are chosen and then a period where we become increasingly dependent on our learned $Q$ network to pick actions. After a number of timesteps most of the actions in the buffer will be generated by performing actions that maximise the $Q$ network.
+> **NOTE**: The original paper gives $y_i$ as an expectation w.r.t. to the environment state distribution. Since cart-pole is deterministic this will be equal to the expression for $y_i$ above.
+
+Explicitly, since we are using the sample mean to approximate the expectation, we have
+
+$$ L_i(\theta_i) = \frac{1}{N} \sum_j^N [(r_t + \gamma \max_{a'} Q(s_{t+1}, a'; \theta^-) - Q(s_j, a_j; \theta_i))^2] $$
+
+The expression $ r_t + \gamma \max_{a'} Q(s_{t+1}, a'; \theta^-) - Q(s_j, a_j; \theta_i) $ gives us the difference between the actual observed reward $r_t$ plus our estimate of the remainder of the Q\* function when selecting optimal actions and our predeiction of the whole thing.
+
+Now here we're using some observation $s_t$, a reward $r_t$, an action $a_t$ and the following state $s_{t+1}$, but where are we drawing these from? A key idea that was introduced in the [original DQN paper from DeepMind](https://arxiv.org/pdf/1312.5602.pdf) is that of an **experience replay buffer**. The experiences will be accumulated as we train and stored in a fixed-length buffer that we will then randomly sample from to generate the minibatches. More details are provided below, but essentially there will be a period of exploration where random actions are chosen and then a period where we become increasingly dependent on our learned $Q$ network to pick actions. After a number of timesteps most of the actions in the buffer will be generated by performing actions that maximise the output of the $Q$ network.
+
+Random sampling of experiences to construct minibatches is important since it decorrelates samples resulting in less variance in parameter update steps. Also, if we were to select a consecutive sequence of experiences to perform the optimisation step, then current weights might currently bias the agent to always choose a left action, for example. The optimisation step would then nudge the parameters to make such actions more likely in future and could result in a viscous feedback loop.
 
 > **NOTE**: It is worth mentioning that DQN can be adapted for environments with continuous action spaces, where it goes by the name [Deep Deterministic Policy Gradient (DDPG)](https://spinningup.openai.com/en/latest/algorithms/ddpg.html). The principal modification here is the introduction of a function that chooses an action that maximises Q which is learned as part of the training process.
 
@@ -140,13 +143,17 @@ After the initial exploration period, the implementation below begins to linearl
 Some of the hyperparameters (learning rate, network size, batchsize) were taken from the DQN implementation in the [Stable Baselines](https://github.com/hill-a/stable-baselines) repo and seem to work well over a range of random seeds (see below for experimental results).
 
 ```python
-import argparse
+import argparse  # Command line argument parsing
 import random
 
+# Use a queue with a max length for the experience replay
+# buffer (appending to it after it reaches its size limit
+# will throw out the old ones)
 from collections import deque
 
 import gym
 import numpy as np
+
 import torch
 from torch import nn
 from torch.distributions.categorical import Categorical
@@ -170,20 +177,21 @@ def best_action(q_func, obs):
 
 
 def dqn(
-        timesteps=25000,
-        bs=32,
-        hidden=[64, 64],  # Hidden layer size in the Q approximator network
-        replay_buffer_len=10000,
-        lr=5e-4,
-        epsilon_start=1,  # Starting value of epsilon
-        epsilon_end=0.02,  # Final value of epsilon after annealing
-        epsilon_decay_duration=2500,  # Anneal the value of epsilon over this many timesteps
-        learning_starts=1000,  # Start training our Q approximation after this many timesteps
-        gamma=0.99,  # Discount factor when computing returns from rewards
-        train_freq=1,
-        seed=42,
-        render_every=0):  # Render every <render_every> episodes
-
+    timesteps=50000,
+    bs=32,
+    hidden=[64, 64],  # Hidden layer size in the Q approximator network
+    replay_buffer_len=10000,
+    lr=5e-4,
+    epsilon_start=1,  # Starting value of epsilon
+    epsilon_end=0.02,  # Final value of epsilon after annealing
+    epsilon_decay_duration=2500,  # Anneal the value of epsilon over this many timesteps
+    learning_starts=1000,  # Start training our Q approximation after this many timesteps
+    gamma=0.99,  # Discount factor when computing returns from rewards
+    train_freq=1,
+    seed=42,
+    render_every=0,  # Render every <render_every> episodes
+    save=None  # Provide a filename here to save the final model to
+):
     # Instantiate environment
     env = gym.make('CartPole-v0')
 
@@ -219,13 +227,11 @@ def dqn(
     # Create some empty buffers for tracking episode-level details.
     # These will be used for logging and determining when we've finished.
     ep_returns = []
-
     rews = []  # Track rewards for each timestep and reset at end of episode
+
     ep_done = False
-
-    obs = env.reset()
-
     loss = None
+    obs = env.reset()
 
     for i in range(timesteps):
         should_render = len(
@@ -262,13 +268,14 @@ def dqn(
             ret = sum(rews)
             ep_returns.append(ret)
 
-            # Log episode data for plotting
             num_episodes = len(ep_returns)
 
             # Cartpole is considered solved when the average return is >= 195
-            # over 100 consecutive trials
+            # over 100 consecutive trials, let's stop training when we reach this
+            # during our training.
             if num_episodes >= 100 and np.mean(ep_returns[-100:]) >= 195:
-                print(f'SOLVED! timesteps: {i} \t episodes: {num_episodes}')
+                print(f'DONE! timesteps: {i} \t episodes: {num_episodes}')
+                torch.save(q_net.state_dict(), save)
                 return ep_returns
 
             ep_returns.append(sum(rews))
@@ -317,6 +324,7 @@ def dqn(
             optimiser.step()
 
         num_episodes = len(ep_returns)
+
         if num_episodes % 100 == 0 and ep_done:
             print(
                 f'episodes: {num_episodes} \t timestep: {i} \t epsilon: {eps}' \
@@ -727,11 +735,13 @@ optimiser.step()
 
 ### Results
 
-**TODO** Create gifs demonstrating progress (might be a good candidate for a PR to gym?)
-
-The results of running the `dqn` function over 10 random seeds are shown below. All runs demonstrate a period of sustained policy improvement, however there are several iterations that level out or experience a decline in performance as the number of episodes increases.
+The results of running the `dqn` function over 10 random seeds are shown below. All runs demonstrate a 'warm-up' period, where the exploration typically takes place, followed period of sustained policy improvement. It is interesting to observe, however, the variance in performance during training, with some policies degrading significantly in performance before reaching the 195 episode threshold.
 
 ![DQN (10 random seeds)](/assets/dqn-1/basic-dqn-10-seed.png)
+
+Here's one of the trained agents
+
+![A trained agent](/assets/dqn-1/trained-agent.gif)
 
 ### What's next?
 
