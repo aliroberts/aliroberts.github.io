@@ -3,35 +3,42 @@ layout: default
 title: Home
 ---
 
-<div class="posts">
-  {% for post in paginator.posts %}
-  <div class="post">
-    <h1 class="post-title">
-      <a href="{{ post.url | absolute_url }}">
-        {{ post.title }}
-      </a>
-    </h1>
-
-    <span class="post-date">{{ post.date | date_to_string }}</span>
-
-    {{ post.content }}
+<section class="hero">
+  <div class="container">
+    <h1 class="hero-title">Bits & Pieces</h1>
+    <p class="hero-subtitle">Hardware and Software Projects</p>
+    <p class="hero-description">
+      Exploring the intersection of technology and creativity through hands-on projects, 
+      thoughtful design, and playful experimentation.
+    </p>
   </div>
-  {% endfor %}
-</div>
+</section>
 
-<div class="pagination">
-  {% if paginator.next_page %}
-    <a class="pagination-item older" href="{{ paginator.next_page_path | absolute_url }}">Older</a>
-  {% else %}
-    <span class="pagination-item older">Older</span>
-  {% endif %}
-  {% if paginator.previous_page %}
-    {% if paginator.page == 2 %}
-      <a class="pagination-item newer" href="{{ '/' | absolute_url }}">Newer</a>
-    {% else %}
-      <a class="pagination-item newer" href="{{ paginator.previous_page_path | absolute_url }}">Newer</a>
+<section class="posts">
+  <div class="container">
+    <h2>Latest Posts</h2>
+    <div class="posts-grid">
+      {% for post in site.posts limit:6 %}
+      <article class="post-card">
+        <h3 class="post-card-title">
+          <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+        </h3>
+        <div class="post-card-meta">
+          <time datetime="{{ post.date | date_to_xmlschema }}">
+            {{ post.date | date: "%B %d, %Y" }}
+          </time>
+        </div>
+        <p class="post-card-excerpt">
+          {{ post.excerpt | strip_html | truncatewords: 25 }}
+        </p>
+      </article>
+      {% endfor %}
+    </div>
+    
+    {% if site.posts.size > 6 %}
+    <div class="text-center mt-4">
+      <a href="{{ '/posts' | relative_url }}" class="btn">View All Posts</a>
+    </div>
     {% endif %}
-  {% else %}
-    <span class="pagination-item newer">Newer</span>
-  {% endif %}
-</div>
+  </div>
+</section> 
