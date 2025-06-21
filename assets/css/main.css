@@ -170,12 +170,12 @@ a:hover {
   font-size: 1.1rem;
   color: var(--color-neutral);
   max-width: 600px;
-  margin: 0 auto var(--space-lg) auto;
+  margin: 0 auto 0 auto;
 }
 
 /* Post List */
 .posts {
-  padding: var(--space-lg) 0;
+  padding: var(--space-sm) 0;
 }
 
 .posts-grid {
