@@ -349,7 +349,7 @@ a:hover {
 }
 
 .post-content h2 {
-  color: var(--color-secondary);
+  /* color: var(--color-secondary); */
   margin-top: var(--space-lg);
   margin-bottom: var(--space-sm);
 }
@@ -393,6 +393,19 @@ a:hover {
   background: var(--color-light);
   color: var(--color-neutral);
   font-style: italic;
+}
+
+.post-content img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%;
+  height: auto;
+}
+
+.post-content figure {
+  text-align: center;
+  margin: var(--space-md) 0;
 }
 
 .post-footer {
