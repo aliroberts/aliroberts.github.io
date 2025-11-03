@@ -2,6 +2,7 @@
 layout: post
 title: "Building a Smart Home Hub from Scratch"
 date: 2024-01-15
+category: Hardware
 excerpt: "How I built a custom smart home hub using Raspberry Pi, Node.js, and a bit of hardware hacking. A deep dive into the intersection of IoT, web development, and home automation."
 tags: [hardware, software, iot, raspberry-pi, nodejs]
 ---
