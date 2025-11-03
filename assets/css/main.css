@@ -4,8 +4,8 @@
 :root {
   /* Color Palette - Inspired by the synthesizer prototype */
   --color-primary: #F8961E;     /* Orange (from knob) */
-  --color-secondary: #845EC2;   /* Purple (from knob) */
-  --color-accent: #4D908E;      /* Cyan (from knob) */
+  --color-secondary: rgb(129,99,168);   /* Purple (from knob) */
+  --color-accent: rgb(90,172,189);      /* Cyan (from knob) */
   --color-neutral: #2c3e50;     /* Dark gray-blue */
   --color-light: #f0f0f0;       /* Light gray */
   --color-white: #ffffff;
@@ -130,9 +130,9 @@ a:hover {
   transition: all 0.2s ease;
 }
 
-.nav-menu a:hover {
+/* .nav-menu a:hover {
   color: var(--color-accent);
-}
+} */
 
 .menu-toggle {
   background: none;
@@ -193,7 +193,7 @@ a:hover {
 .btn-cta {
   display: inline-block;
   padding: 1rem 2.5rem;
-  background: var(--color-accent);
+  background: var(--color-secondary);
   color: var(--color-white);
   font-size: 1.25rem;
   font-weight: 600;
@@ -203,7 +203,8 @@ a:hover {
 }
 
 .btn-cta:hover {
-  background: var(--color-accent);
+  background: var(--color-secondary);
+  color: var(--color-white);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(77, 144, 142, 0.3);
 }
@@ -307,9 +308,9 @@ a:hover {
   color: var(--color-neutral);
 }
 
-.post-card-title a:hover {
+/* .post-card-title a:hover {
   color: var(--color-accent);
-}
+} */
 
 .post-card-excerpt {
   color: var(--color-neutral);
