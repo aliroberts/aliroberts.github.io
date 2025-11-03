@@ -23,7 +23,7 @@ defaults:
       type: "posts"
     values:
       layout: "post"
-      author: "Ali Roberts"
+      author: "Alastair Roberts"
   - scope:
       path: ""
       type: "pages"
