@@ -15,7 +15,7 @@ tags: [hardware, software, iot, raspberry-pi, nodejs]
 </figure>
 
 
-TLDR: My daughter is about to turn three and, for her birthday, I've made her a synthesiser. Four sliders control four notes which play one after the other, looping endlessly. Pushing a slider up raises the pitch of a note at a given step and pushing it down lowers it. It has a few basic functions that allow the user to control the volume, tempo, pitch, scale and sound and comes with a selection of patterns to choose from. It also has a screen for visual feedback and displaying a cute, dancing panda bear. Here it is in action:
+<p class="tldr">TLDR: My daughter is about to turn three and, for her birthday, I've made her a synthesiser. Four sliders control four notes which play one after the other, looping endlessly. Pushing a slider up raises the pitch of a note at a given step and pushing it down lowers it. It has a few basic functions that allow the user to control the volume, tempo, pitch, scale and sound and comes with a selection of patterns to choose from. It also has a screen for visual feedback and displaying a cute, dancing panda bear. Here it is in action:</p>
 
 ## Inspiration
 
@@ -37,10 +37,14 @@ Once I'd got the hang of wiring up potentiometers and rotary encoders I decided 
 
 I followed this up by adding small OLED screen to show provide some visual feedback and character and used Oli Kraus's excellent (u8g2 graphics library)[https://github.com/olikraus/u8g2]. This was actually more of a challenge to incorporate that anticipated since the Arduino Nano I was using has so little RAM that storing an entire screen-sized bitmap in memory and writing to the OLED in one go was out of the question. This meant that I had to be more selective with the parts of the screen I was updating. At this point I really should've switched to a much more powerful ESP32 variant which would've eliminated these concerns. Updating the screen in patches is expensive and large updates could take sufficiently long that encoder readings would be interrupted resulting in dodgy controls and delayed notes. Nevertheless I persevered and accepted a little bit of MIDI lag at quicker tempos when twiddling a knob.
 
-
-<figure> 
-  <img style="max-width: 600px" src="{{ base }}/wokwi.jpeg" alt="Slider layout">
-</figure>
+<div class="image-gallery cols-2">
+<a href="{{ base }}/wokwi.jpeg">
+    <img src="{{ base }}/wokwi.jpeg" alt="Woki in VS Code" style="object-position: center;">
+  </a>
+<a href="{{ base }}/breadboard.jpeg">
+    <img src="{{ base }}/breadboard.jpeg" alt="Early breadboard prototype" style=" height: 100%; object-position: center">
+  </a>
+</div>
 
 - PHOTO OF EARLY VERSION ('Just another few weeks! Six months later...')
 
@@ -52,9 +56,14 @@ With a broadly function circuit it was time to move on to designing an enclosure
 
 The prospect of moving my circuit, however simple, to a PCB seemed daunting so I decided the first version would be hand-wired together using a solderable breadboard. What I initially thought was a smart simplification that would enable me to get the thing into my daughter's hands more quickly turned out to be waste of time, however. When the time finally came to close the two halves of the enclosure, stuffing the rats nest of wires inside ended up putting pressure on a bunch of the delicate soldered joints and breaking them. My daughter could play around a bit with it - enough for me to convince/fool myself that she'd enjoy using it -  but it was fragile and I resolved to make an improved version (in the colour of her choice). I also had the vague idea that I'd build a few units for some friends and the thought of soldering 4 or 5 more of them didn't fill me with joy.
 
-<figure> 
-  <img style="max-width: 600px" src="{{ base }}/assembly-1.jpeg" alt="Slider layout">
-</figure>
+<div class="image-gallery cols-2">
+<a href="{{ base }}/assembly-1.jpeg">
+    <img src="{{ base }}/assembly-1.jpeg" alt="v1 assembly" style=" height: 100%; object-position: center">
+  </a>
+<a href="{{ base }}/v1.gif">
+    <img src="{{ base }}/v1.gif" alt="v1 in action" style="height: 500px; object-position: left;">
+  </a>
+</div>
 
 ### Power
 
@@ -63,13 +72,7 @@ I also made a poor decision about the power supply. After learning that energy c
 Building a new version would allow me to address these shortcomings. I was also keen to make a proper battery compartment.
 
 
-- IMAGE OF VERSION 1 "Ooh, I'm blinded by the lights"
-
 ## Version 2
-
-<figure> 
-  <img style="max-width: 600px" src="{{ base }}/fistful-of-pcbs.jpeg" alt="Slider layout">
-</figure>
 
 ### PCB
 
@@ -77,22 +80,43 @@ For the follow-up version I decided to pull up my socks and learn some elementar
 
 For those who are unfamiliar with designing PCBs in Fusion 360, they consist of three 'sheets' - a schematic, the 2D PCB layout containing component footprints and routing (wiring), and a 3D model that you can then incorporate in your enclosure. When you've decided on the components you need, you can go to one of the many online electronics retailers such as Mouser, locate a suitable part, and download some manufacturer-provided files containing the schematic, footprint and 3d model. You can then import them into Fusion 360, drag them into place and wire 'em up. When you're done, you then export the PCB design file and upload this to a manufacture's website, give them $30 and twiddle your thumbs for 5 or so days before receiving it in the post. This last part is a modern miracle.
 
+<div class="image-gallery cols-2">
+<a href="{{ base }}/pcb-design.jpeg">
+    <img src="{{ base }}/pcb-design.jpeg" alt="PCB design in Fusion 360" style="object-position: center;">
+  </a>
+<a href="{{ base }}/fistful-of-pcbs.jpeg">
+    <img src="{{ base }}/fistful-of-pcbs.jpeg" alt="Manufactured PCBs" style=" height: 100%; object-position: center">
+  </a>
+</div>
+
 ### Enclosure
 
 With the PCB designed and ordered, I moved on to designing the enclosure that would house all the components. I used Fusion 360's CAD tools to model the case, ensuring proper spacing for the sliders, screen, speakers, and battery compartment. Here are some views of the enclosure design and assembly:
 
-<div class="image-gallery">
-  <a href="{{ base }}/enclosure-cad.jpeg">
-    <img src="{{ base }}/enclosure-cad.jpeg" alt="Enclosure CAD design">
+<div class="image-gallery cols-2">
+<a href="{{ base }}/enclosure-bottom.jpeg">
+    <img src="{{ base }}/enclosure-bottom.jpeg" alt="Enclosure bottom view" style="width: 550px; height: 500px; object-position: center; clip-path: inset(50px 0 50px 0);">
   </a>
+<a href="{{ base }}/enclosure-battery.jpeg">
+    <img src="{{ base }}/enclosure-battery.jpeg" alt="Battery compartment" style="width: 550px; height: 500px; object-position: center; clip-path: inset(50px 0 50px 0);">
+  </a>
+  
   <a href="{{ base }}/enclosure-pcb.jpeg">
-    <img src="{{ base }}/enclosure-pcb.jpeg" alt="PCB fitted in enclosure">
+    <img src="{{ base }}/enclosure-pcb.jpeg" alt="PCB fitted in enclosure" style="width: 550px; height: 500px; object-position: center; clip-path: inset(50px 0 50px 0);">
   </a>
-  <a href="{{ base }}/enclosure-bottom.jpeg">
-    <img src="{{ base }}/enclosure-bottom.jpeg" alt="Enclosure bottom view">
+  <a href="{{ base }}/enclosure-cad.jpeg">
+    <img src="{{ base }}/enclosure-cad.jpeg" alt="Enclosure CAD design" style="width: 550px; height: 500px; object-position: center; clip-path: inset(50px 0 50px 0);">
   </a>
-  <a href="{{ base }}/enclosure-battery.jpeg">
-    <img src="{{ base }}/enclosure-battery.jpeg" alt="Battery compartment">
+</div>
+
+### Final assembly
+
+<div class="image-gallery cols-2">
+<a href="{{ base }}/v2-pcb.jpeg">
+    <img src="{{ base }}/v2-pcb.jpeg" alt="Final assembly - PCB in enclosure" style="object-position: center;">
+  </a>
+<a href="{{ base }}/v2-back-panel-removed.jpeg">
+    <img src="{{ base }}/v2-back-panel-removed.jpeg" alt="Final assembly - Back panel" style=" height: 100%; object-position: center">
   </a>
 </div>
 
