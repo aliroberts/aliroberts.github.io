@@ -77,6 +77,24 @@ For the follow-up version I decided to pull up my socks and learn some elementar
 
 For those who are unfamiliar with designing PCBs in Fusion 360, they consist of three 'sheets' - a schematic, the 2D PCB layout containing component footprints and routing (wiring), and a 3D model that you can then incorporate in your enclosure. When you've decided on the components you need, you can go to one of the many online electronics retailers such as Mouser, locate a suitable part, and download some manufacturer-provided files containing the schematic, footprint and 3d model. You can then import them into Fusion 360, drag them into place and wire 'em up. When you're done, you then export the PCB design file and upload this to a manufacture's website, give them $30 and twiddle your thumbs for 5 or so days before receiving it in the post. This last part is a modern miracle.
 
+### Enclosure
+
+With the PCB designed and ordered, I moved on to designing the enclosure that would house all the components. I used Fusion 360's CAD tools to model the case, ensuring proper spacing for the sliders, screen, speakers, and battery compartment. Here are some views of the enclosure design and assembly:
+
+<div class="image-gallery">
+  <a href="{{ base }}/enclosure-cad.jpeg">
+    <img src="{{ base }}/enclosure-cad.jpeg" alt="Enclosure CAD design">
+  </a>
+  <a href="{{ base }}/enclosure-pcb.jpeg">
+    <img src="{{ base }}/enclosure-pcb.jpeg" alt="PCB fitted in enclosure">
+  </a>
+  <a href="{{ base }}/enclosure-bottom.jpeg">
+    <img src="{{ base }}/enclosure-bottom.jpeg" alt="Enclosure bottom view">
+  </a>
+  <a href="{{ base }}/enclosure-battery.jpeg">
+    <img src="{{ base }}/enclosure-battery.jpeg" alt="Battery compartment">
+  </a>
+</div>
 
 ## Reflections & next steps
 ---

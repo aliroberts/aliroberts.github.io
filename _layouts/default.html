@@ -43,5 +43,97 @@
             <p>&copy; {{ site.time | date: '%Y' }} {{ site.title }}. Built with Jekyll.</p>
         </div>
     </footer>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="lightbox">
+        <span class="lightbox-close">&times;</span>
+        <span class="lightbox-nav lightbox-prev">&#10094;</span>
+        <span class="lightbox-nav lightbox-next">&#10095;</span>
+        <div class="lightbox-content">
+            <img id="lightbox-img" src="" alt="">
+        </div>
+        <div class="lightbox-counter"><span id="lightbox-counter"></span></div>
+    </div>
+
+    <script>
+        // Lightbox functionality
+        (function() {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            const lightboxCounter = document.getElementById('lightbox-counter');
+            const closeBtn = document.querySelector('.lightbox-close');
+            const prevBtn = document.querySelector('.lightbox-prev');
+            const nextBtn = document.querySelector('.lightbox-next');
+
+            let currentGallery = [];
+            let currentIndex = 0;
+
+            // Initialize gallery links
+            function initGallery() {
+                document.querySelectorAll('.image-gallery').forEach(gallery => {
+                    const links = gallery.querySelectorAll('a');
+                    links.forEach((link, index) => {
+                        link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            currentGallery = Array.from(links);
+                            currentIndex = index;
+                            showImage();
+                        });
+                    });
+                });
+            }
+
+            function showImage() {
+                const link = currentGallery[currentIndex];
+                const img = link.querySelector('img');
+                lightboxImg.src = img.src;
+                lightboxImg.alt = img.alt;
+                lightboxCounter.textContent = `${currentIndex + 1} / ${currentGallery.length}`;
+                lightbox.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeImage() {
+                lightbox.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            function nextImage() {
+                currentIndex = (currentIndex + 1) % currentGallery.length;
+                showImage();
+            }
+
+            function prevImage() {
+                currentIndex = (currentIndex - 1 + currentGallery.length) % currentGallery.length;
+                showImage();
+            }
+
+            // Event listeners
+            closeBtn.addEventListener('click', closeImage);
+            nextBtn.addEventListener('click', nextImage);
+            prevBtn.addEventListener('click', prevImage);
+
+            lightbox.addEventListener('click', function(e) {
+                if (e.target === lightbox) {
+                    closeImage();
+                }
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (!lightbox.classList.contains('active')) return;
+
+                if (e.key === 'Escape') closeImage();
+                if (e.key === 'ArrowRight') nextImage();
+                if (e.key === 'ArrowLeft') prevImage();
+            });
+
+            // Initialize when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initGallery);
+            } else {
+                initGallery();
+            }
+        })();
+    </script>
 </body>
 </html> 
