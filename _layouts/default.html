@@ -56,6 +56,40 @@
     </div>
 
     <script>
+        // Header hide/show on scroll
+        (function() {
+            const header = document.querySelector('.site-header');
+            let lastScrollTop = 0;
+            let scrollThreshold = 100;
+            let isHeaderVisible = true;
+
+            window.addEventListener('scroll', function() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+                // Don't hide header at the very top of the page
+                if (scrollTop < scrollThreshold) {
+                    if (!isHeaderVisible) {
+                        header.style.transform = 'translateY(0)';
+                        isHeaderVisible = true;
+                    }
+                    lastScrollTop = scrollTop;
+                    return;
+                }
+
+                if (scrollTop > lastScrollTop && isHeaderVisible) {
+                    // Scrolling down - hide header
+                    header.style.transform = 'translateY(-100%)';
+                    isHeaderVisible = false;
+                } else if (scrollTop < lastScrollTop && !isHeaderVisible) {
+                    // Scrolling up - show header
+                    header.style.transform = 'translateY(0)';
+                    isHeaderVisible = true;
+                }
+
+                lastScrollTop = scrollTop;
+            }, { passive: true });
+        })();
+
         // Lightbox functionality
         (function() {
             const lightbox = document.getElementById('lightbox');
