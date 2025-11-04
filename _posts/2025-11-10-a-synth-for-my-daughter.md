@@ -95,17 +95,17 @@ With the PCB designed and ordered, I moved on to designing the enclosure that wo
 
 <div class="image-gallery cols-2">
 <a href="{{ base }}/enclosure-bottom.jpeg">
-    <img src="{{ base }}/enclosure-bottom.jpeg" alt="Enclosure bottom view" style="width: 550px; height: 500px; object-position: center; clip-path: inset(50px 0 50px 0);">
+    <img src="{{ base }}/enclosure-bottom.jpeg" alt="Enclosure bottom view" style="width: 600px; height: 400px; object-position: center; clip-path: inset(50px 0 50px 0);">
   </a>
 <a href="{{ base }}/enclosure-battery.jpeg">
-    <img src="{{ base }}/enclosure-battery.jpeg" alt="Battery compartment" style="width: 550px; height: 500px; object-position: center; clip-path: inset(50px 0 50px 0);">
+    <img src="{{ base }}/enclosure-battery.jpeg" alt="Battery compartment" style="width: 600px; height: 400px; object-position: center; clip-path: inset(50px 0 50px 0);">
   </a>
   
   <a href="{{ base }}/enclosure-pcb.jpeg">
-    <img src="{{ base }}/enclosure-pcb.jpeg" alt="PCB fitted in enclosure" style="width: 550px; height: 500px; object-position: center; clip-path: inset(50px 0 50px 0);">
+    <img src="{{ base }}/enclosure-pcb.jpeg" alt="PCB fitted in enclosure" style="width: 600px; height: 400px; object-position: center; clip-path: inset(50px 0 50px 0);">
   </a>
   <a href="{{ base }}/enclosure-cad.jpeg">
-    <img src="{{ base }}/enclosure-cad.jpeg" alt="Enclosure CAD design" style="width: 550px; height: 500px; object-position: center; clip-path: inset(50px 0 50px 0);">
+    <img src="{{ base }}/enclosure-cad.jpeg" alt="Enclosure CAD design" style="width: 600px; height: 400px; object-position: center; clip-path: inset(50px 0 50px 0);">
   </a>
 </div>
 

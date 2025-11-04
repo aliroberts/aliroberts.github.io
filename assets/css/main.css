@@ -28,7 +28,9 @@
   --space-xl: 8rem;
   
   /* Layout */
+  --nav-max-width: 1400px;
   --container-max-width: 1200px;
+  --post-max-width: 1000px;
   --border-radius: 4px;
   --border-radius-lg: 8px;
 }
@@ -86,6 +88,17 @@ a:hover {
   max-width: var(--container-max-width);
   margin: 0 auto;
   padding: 0 var(--space-sm);
+}
+
+.nav-container {
+  /* max-width: var(--nav-max-width); */
+  margin: 0 auto;
+  padding: 0 75px;
+}
+
+.post-container {
+  max-width: var(--post-max-width);
+  margin: 0 auto;
 }
 
 /* Header */
@@ -523,6 +536,33 @@ a:hover {
     font-size: 1.1rem;
     padding: 0.875rem 2rem;
   }
+
+  .nav-container {
+    padding: 0 var(--space-sm);
+  }
+
+  .image-gallery {
+    grid-template-columns: 1fr !important;
+    width: 100%;
+  }
+
+  .image-gallery img {
+    width: 100% !important;
+    height: auto !important;
+    clip-path: none !important;
+    max-width: 100%;
+  }
+
+  .lightbox-nav {
+    font-size: 30px;
+    padding: 10px;
+  }
+
+  .lightbox-close {
+    top: 10px;
+    right: 10px;
+    font-size: 30px;
+  }
 }
 
 /* Utility Classes */
@@ -681,19 +721,4 @@ a:hover {
   border-radius: 20px;
 }
 
-@media (max-width: 768px) {
-  .image-gallery {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .lightbox-nav {
-    font-size: 30px;
-    padding: 10px;
-  }
-
-  .lightbox-close {
-    top: 10px;
-    right: 10px;
-    font-size: 30px;
-  }
-} 
+ 
