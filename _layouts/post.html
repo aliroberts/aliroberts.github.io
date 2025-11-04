@@ -4,7 +4,7 @@ layout: default
 
 <article class="post">
     <header class="post-header">
-        <div class="container">
+        <div class="post-container">
             <h1 class="post-title">{{ page.title }}</h1>
             <div class="post-meta">
                 <time datetime="{{ page.date | date_to_xmlschema }}">
@@ -18,7 +18,7 @@ layout: default
     </header>
 
     <div class="post-content">
-        <div class="container">
+        <div class="post-container">    
             {{ content }}
         </div>
     </div>
