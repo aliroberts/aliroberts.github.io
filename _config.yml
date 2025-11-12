@@ -1,21 +1,41 @@
-# Setup
-title: Alastair Roberts
-tagline: 'Software Engineering & Machine Learning'
-description: "I'm Alastair Roberts, a London-based software engineer & musician. Currently interested in reinforcement learning and natural language processing."
-url: https://aliroberts.github.io
-baseurl: ''
-paginate: 5
-permalink: pretty
+title: bitsnpieces.dev
+description: Hardware and software projects by Ali Roberts
+url: "https://bitsnpieces.dev"
+baseurl: ""
 
-# About/contact
-author:
-  name: Alastair Roberts
-  email: ali.roberts3@gmail.com
-  url: https://twitter.com/ARoberts9
-
-# Gems
+# Build settings
+markdown: kramdown
+permalink: /:year/:month/:day/:title/
 plugins:
-  - jekyll-paginate
+  - jekyll-feed
+  - jekyll-seo-tag
 
-# Custom vars
-version: 1.1.0
+# Collections
+collections:
+  posts:
+    output: true
+    permalink: /:collection/:title/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+      author: "Alastair Roberts"
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "page"
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/ 

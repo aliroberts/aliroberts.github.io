@@ -1,39 +1,173 @@
 <!DOCTYPE html>
-<html lang="en-us">
-  {% include head.html %}
-
-  <body class="theme-base-0d">
-    {% include sidebar.html %}
-
-    <!-- Wrap is the content to shift when toggling the sidebar. We wrap the
-         content to avoid any CSS collisions with our real content. -->
-    <div class="wrap">
-      <div class="masthead">
-        <div class="container">
-          <h3 class="masthead-title">
-            <a href="{{ site.baseurl }}/" title="Home">{{ site.title }}</a>
-            <small>{{ site.tagline }}</small>
-          </h3>
+<html lang="{{ site.lang | default: 'en' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if page.title %}{{ page.title }} - {% endif %}{{ site.title }}</title>
+    <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
+    
+    <!-- SEO -->
+    {% seo %}
+    
+    <!-- Feed -->
+    <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ site.url }}/feed.xml">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ '/assets/favicon.svg' | relative_url }}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="nav-container">
+            <nav class="nav">
+                <a href="{{ '/' | relative_url }}" class="nav-logo">
+                    <span class="logo-text">Alastair Roberts</span>
+                </a>
+                <ul class="nav-menu">
+                    <li><a href="/#posts">Posts</a></li>
+                    <li><a href="/#about">About</a></li>
+                    <li><a href="mailto:ali.roberts3@gmail.com">Contact</a></li>
+                </ul>
+            </nav>
         </div>
-      </div>
+    </header>
 
-      <div class="container content">{{ content }}</div>
+    <main class="site-main">
+        {{ content }}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; {{ site.time | date: '%Y' }} {{ site.title }}. Built with Jekyll.</p>
+        </div>
+    </footer>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="lightbox">
+        <span class="lightbox-close">&times;</span>
+        <span class="lightbox-nav lightbox-prev">&#10094;</span>
+        <span class="lightbox-nav lightbox-next">&#10095;</span>
+        <div class="lightbox-content">
+            <img id="lightbox-img" src="" alt="">
+        </div>
+        <div class="lightbox-counter"><span id="lightbox-counter"></span></div>
     </div>
 
-    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+    <script>
+        // Header hide/show on scroll
+        (function() {
+            const header = document.querySelector('.site-header');
+            let lastScrollTop = 0;
+            let scrollThreshold = 100;
+            let isHeaderVisible = true;
 
-    <script src="{{ site.baseurl }}/public/js/script.js"></script>
-    <script type="text/x-mathjax-config">
-      MathJax.Hub.Config({
-        tex2jax: {
-          inlineMath: [['$','$'], ['\\(','\\)']],
-          processEscapes: true
-        }
-      });
+            window.addEventListener('scroll', function() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+                // Don't hide header at the very top of the page
+                if (scrollTop < scrollThreshold) {
+                    if (!isHeaderVisible) {
+                        header.style.transform = 'translateY(0)';
+                        isHeaderVisible = true;
+                    }
+                    lastScrollTop = scrollTop;
+                    return;
+                }
+
+                if (scrollTop > lastScrollTop && isHeaderVisible) {
+                    // Scrolling down - hide header
+                    header.style.transform = 'translateY(-100%)';
+                    isHeaderVisible = false;
+                } else if (scrollTop < lastScrollTop && !isHeaderVisible) {
+                    // Scrolling up - show header
+                    header.style.transform = 'translateY(0)';
+                    isHeaderVisible = true;
+                }
+
+                lastScrollTop = scrollTop;
+            }, { passive: true });
+        })();
+
+        // Lightbox functionality
+        (function() {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            const lightboxCounter = document.getElementById('lightbox-counter');
+            const closeBtn = document.querySelector('.lightbox-close');
+            const prevBtn = document.querySelector('.lightbox-prev');
+            const nextBtn = document.querySelector('.lightbox-next');
+
+            let currentGallery = [];
+            let currentIndex = 0;
+
+            // Initialize gallery links
+            function initGallery() {
+                document.querySelectorAll('.image-gallery').forEach(gallery => {
+                    const links = gallery.querySelectorAll('a');
+                    links.forEach((link, index) => {
+                        link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            currentGallery = Array.from(links);
+                            currentIndex = index;
+                            showImage();
+                        });
+                    });
+                });
+            }
+
+            function showImage() {
+                const link = currentGallery[currentIndex];
+                const img = link.querySelector('img');
+                lightboxImg.src = img.src;
+                lightboxImg.alt = img.alt;
+                lightboxCounter.textContent = `${currentIndex + 1} / ${currentGallery.length}`;
+                lightbox.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeImage() {
+                lightbox.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            function nextImage() {
+                currentIndex = (currentIndex + 1) % currentGallery.length;
+                showImage();
+            }
+
+            function prevImage() {
+                currentIndex = (currentIndex - 1 + currentGallery.length) % currentGallery.length;
+                showImage();
+            }
+
+            // Event listeners
+            closeBtn.addEventListener('click', closeImage);
+            nextBtn.addEventListener('click', nextImage);
+            prevBtn.addEventListener('click', prevImage);
+
+            lightbox.addEventListener('click', function(e) {
+                if (e.target === lightbox) {
+                    closeImage();
+                }
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (!lightbox.classList.contains('active')) return;
+
+                if (e.key === 'Escape') closeImage();
+                if (e.key === 'ArrowRight') nextImage();
+                if (e.key === 'ArrowLeft') prevImage();
+            });
+
+            // Initialize when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initGallery);
+            } else {
+                initGallery();
+            }
+        })();
     </script>
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
-      type="text/javascript"
-    ></script>
-  </body>
-</html>
+</body>
+</html> 
