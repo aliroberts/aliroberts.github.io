@@ -99,6 +99,7 @@ a:hover {
 .post-container {
   max-width: var(--post-max-width);
   margin: 0 auto;
+  padding: 0 var(--space-sm);
 }
 
 /* Header */
@@ -365,7 +366,7 @@ a:hover {
 
 .post-content h2 {
   /* color: var(--color-secondary); */
-  margin-top: var(--space-lg);
+  margin-top: var(--space-sm);
   margin-bottom: var(--space-sm);
 }
 
@@ -543,9 +544,13 @@ a:hover {
     padding: 0 var(--space-sm);
   }
 
+  .post-container {
+    padding: 0 var(--space-sm);
+  }
+
   .image-gallery {
     grid-template-columns: 1fr !important;
-    width: 100%;
+    width: 100% !important;
   }
 
   .image-gallery img {
