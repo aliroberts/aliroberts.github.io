@@ -597,6 +597,15 @@ a:hover {
   margin: var(--space-md) 0;
 }
 
+.image-gallery-caption {
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--color-neutral);
+  opacity: 0.8;
+  margin-top: var(--space-sm);
+  font-style: italic;
+}
+
 .image-gallery.cols-1 {
   grid-template-columns: 1fr;
   width: max-content;
