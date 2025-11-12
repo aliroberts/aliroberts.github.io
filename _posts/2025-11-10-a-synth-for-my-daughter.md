@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "A Synth for My Daughter"
+title: "I Built a Synth for My Daughter"
 date: 2024-11-12
 category: Hardware
 excerpt: "How I built a portable synthesizer for my three year old daughter."
@@ -31,7 +31,7 @@ tags: [hardware, software, iot, raspberry-pi, nodejs]
 <p class="tldr">It's a child-friendly, tactile music toy. Here's the pink edition in action:
 </p>
 
-<iframe width="100%" height="500px" src="https://www.youtube.com/embed/5gMyihI9n4o" 
+<iframe width="100%" height="500px" src="https://www.youtube.com/embed/qboig3a0YS0" 
         title="YouTube video player" frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowfullscreen>
@@ -53,9 +53,9 @@ Reading the potentiometer inputs and turning them into the MIDI messages using t
   </a>
 </div>
 
-Once I had the hang of wiring up potentiometers and rotary encoders, the next step was to move the audio synthesis from Logic to my breadboard. For this I used a little $12.95 [SAM2695 synthesiser module](https://shop.m5stack.com/products/midi-synthesizer-unit-sam2695) with an integrated amplifier and speaker. Its inner workings remain a mystery to me but it does what I need it to and I was happy reduce the amount of time to get a functioning prototype into my daughter's hands.
+Once I had the hang of wiring up potentiometers and rotary encoders, the next step was to move the audio synthesis from Logic to my breadboard. For this I used a little $12.95 [SAM2695 synthesiser module](https://shop.m5stack.com/products/midi-synthesizer-unit-sam2695) with an integrated amplifier and speaker. Its inner workings remain a mystery to me but it does what I need it to and I was happy reduce the amount of time to get a functioning prototype into my daughter's hands. I also moved to an Elegoo Nano here due to its low cost and increased number of analog pins.
 
-Next, I added small OLED screen to show provide some visual feedback and character and used the handy [u8g2 graphics library](https://github.com/olikraus/u8g2). This was trickier than I expected: the Arduino Nano has so little RAM that I couldn’t buffer a full frame. I had to update the screen in small patches, and large updates were slow enough that they occasionally interfered with encoder reads, and caused laggy notes at faster tempos. I've still got some work to do to iron out blocking screen updates, but for now I pushed through and accepted a bit of lag.
+Next, I added small OLED screen to show provide some visual feedback and character and used the handy [u8g2 graphics library](https://github.com/olikraus/u8g2). This was trickier than I expected: the Arduino Nano has so little RAM that I couldn’t buffer a full frame. I had to update the screen in small patches, and large updates were slow enough that they occasionally interfered with encoder reads, and caused laggy notes at faster tempos. I've still got some work to do to iron out blocking screen updates, but for now I pushed through and accepted a bit of lag. I added a little dancing panda that I adapted from one I found in a pixel art tutorial which I can no longer find - if you're the original creator, please let me know so I can credit you!
 
 <div class="image-gallery cols-1">
 <a href="{{ base }}/breadboard.jpeg">
@@ -70,6 +70,7 @@ For developing on-the-go, I discovered the [Wokwi￼microcontroller simulator](h
     <img src="{{ base }}/wokwi.jpeg" alt="Wokwi in VS Code" style="max-height: 500px; object-position: center;">
   </a>
 </div>
+ <p class="image-gallery-caption">The circuit drawn in Wokwi</p>
 
 Once I had a functional circuit it was time to move on to designing an enclosure and assembling a complete version of the synthesiser that my daughter could play with.
 
@@ -90,10 +91,10 @@ After a few weeks of trial-and-error, I finally had a design I could print:
         <img src="{{ base }}/3d-print-1.jpeg" alt="Enclosure - 3D print" style="height: 300px; max-height: 400px; object-position: center;">   
     </a>
     <a href="{{ base }}/enclosure-1-pieces.jpeg">
-        <img src="{{ base }}/enclosure-1-pieces.jpeg" alt="Enclosure - top and bootom" style="height: 300px; max-height: 400px; object-position: center;">   
+        <img src="{{ base }}/enclosure-1-pieces.jpeg" alt="Enclosure - top and bottom" style="height: 300px; max-height: 400px; object-position: center;">   
     </a>
 </div>
-
+ <p class="image-gallery-caption">Thank you Tom for printing these! A year's supply of filament coming your way.</p>
 
 
 ### First assembly
@@ -108,6 +109,7 @@ Moving the circuit to a proper PCB felt daunting, so for the first version I han
     <img src="{{ base }}/v1.gif" alt="v1 in action" style="height: 400px; object-position: left;">
   </a>
 </div>
+ <p class="image-gallery-caption">Romain, I definitely owe you a bottle or two...</p>
 
 #### Designing a PCB
 
@@ -157,12 +159,15 @@ Finally, I updated the enclosure so that I could securely attach the PCB and add
 </div>
 
 
-<div class="image-gallery cols-2">
+<div class="image-gallery cols-3">
 <a href="{{ base }}/v2-pcb.jpeg">
-    <img src="{{ base }}/v2-pcb.jpeg" alt="Final assembly - PCB in enclosure" style="object-position: center;">
+    <img src="{{ base }}/v2-pcb.jpeg" alt="Final assembly - PCB in enclosure" style="height: 100%; object-position: center;">
   </a>
 <a href="{{ base }}/v2-back-panel-removed.jpeg">
-    <img src="{{ base }}/v2-back-panel-removed.jpeg" alt="Final assembly - Back panel" style=" height: 100%; object-position: center">
+    <img src="{{ base }}/v2-back-panel-removed.jpeg" alt="Final assembly - Back panel" style="height: 100%; object-position: center">
+  </a>
+  <a href="{{ base }}/alma-synth.jpeg">
+    <img src="{{ base }}/alma-synth.jpeg" alt="The finished synth" style="object-position: center;">
   </a>
 </div>
 
