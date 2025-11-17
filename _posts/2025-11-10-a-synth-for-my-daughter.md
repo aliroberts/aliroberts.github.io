@@ -31,11 +31,16 @@ tags: [hardware, software, iot, raspberry-pi, nodejs]
 <p class="tldr">It's a child-friendly, tactile music toy. Here's the pink edition in action:
 </p>
 
-<iframe width="100%" height="500px" src="https://www.youtube.com/embed/qboig3a0YS0" 
+<iframe width="100%" height="500px" src="https://www.youtube.com/embed/qboig3a0YS0"
         title="YouTube video player" frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowfullscreen>
 </iframe>
+
+<div class="post-feedback" style="margin-top: var(--space-md);">
+    <p class="feedback-prompt">I'd like to make a small batch of these synths. Click the button below to stay updated.</p>
+    <button class="btn-feedback" data-tally-open="Y55dXv" data-tally-emoji-text="👋" data-tally-emoji-animation="wave">Keep me updated</button>
+</div>
 
 ## Why I built this
 
