@@ -5,6 +5,7 @@ date: 2025-11-12
 category: Hardware
 excerpt: "How I built a portable synthesizer for my three year old daughter."
 tags: [hardware, software, iot, raspberry-pi, nodejs]
+image: /assets/posts/2025-11-10-a-synth-for-my-daughter/prototype-enclosure.jpeg
 ---
 
 {% assign base = '/assets/posts/2025-11-10-a-synth-for-my-daughter' | relative_url %}
