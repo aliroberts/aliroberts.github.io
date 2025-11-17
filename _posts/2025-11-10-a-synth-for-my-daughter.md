@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "I Built a Synth for My Daughter"
-date: 2024-11-12
+date: 2025-11-12
 category: Hardware
 excerpt: "How I built a portable synthesizer for my three year old daughter."
 tags: [hardware, software, iot, raspberry-pi, nodejs]
