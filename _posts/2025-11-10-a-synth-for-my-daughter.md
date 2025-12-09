@@ -40,7 +40,8 @@ image: /assets/posts/2025-11-10-a-synth-for-my-daughter/prototype-enclosure.jpeg
 
 <div class="post-feedback" style="margin-top: var(--space-md);">
     <p class="feedback-prompt">I'd like to make a small batch of these synths. Click the button below to stay updated.</p>
-    <button class="btn-feedback" data-tally-open="Y55dXv" data-tally-emoji-text="👋" data-tally-emoji-animation="wave">Keep me updated</button>
+    <!-- <button class="btn-feedback" data-tally-open="Y55dXv" data-tally-emoji-text="👋" data-tally-emoji-animation="wave">Keep me updated</button> -->
+    <button class="btn-feedback" data-eo-form-toggle-id="efd478ba-d0f9-11f0-9046-4f41046c0488">Keep me updated</button>
 </div>
 
 ## Why I built this
